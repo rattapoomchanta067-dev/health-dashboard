@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard สุขภาพส่วนตัว - Health Tracker</title>
+    <!-- Google Font: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --water-color: #0284c7;
+            --sleep-color: #7c3aed;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 24px 16px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 20px 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .header-title p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .user-badge {
+            background: #eff6ff;
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: 1px solid #bfdbfe;
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .kpi-title {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .kpi-subtext {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .text-success { color: var(--success); }
+        .text-warning { color: var(--warning); }
+        .text-danger { color: var(--danger); }
+        .text-water { color: var(--water-color); }
+        .text-sleep { color: var(--sleep-color); }
+
+        /* Content Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1.2fr 1fr;
+            }
+        }
+
+        .card-box {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-box h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Activity Table */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 12px 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-workout { background: #dcfce7; color: #15803d; }
+        .badge-rest { background: #f1f5f9; color: #64748b; }
+
+        /* Assessment Summary */
+        .assessment-box {
+            margin-top: 24px;
+            background: #f8fafc;
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .assessment-box ul {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        .assessment-box li {
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header>
+        <div class="header-title">
+            <h1>Dashboard สุขภาพประจำสัปดาห์</h1>
+            <p>รายงานภาพรวมวันที่ 7 ก.ย. - 13 ก.ย.</p>
+        </div>
+        <div class="user-badge">
+            น้ำหนักตัว: 85 กก. | เป้าหมาย: ออกกำลังกาย 5 วัน/สัปดาห์
+        </div>
+    </header>
+
+    <!-- KPI Summary Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-title">วันออกกำลังกาย</div>
+            <div class="kpi-value text-success">5 / 7 <span style="font-size: 1rem;">วัน</span></div>
+            <div class="kpi-subtext text-success">✓ บรรลุเป้าหมาย (100%)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">เวลาออกกำลังกายรวม</div>
+            <div class="kpi-value text-primary">205 <span style="font-size: 1rem;">นาที</span></div>
+            <div class="kpi-subtext text-muted">เฉลี่ย ~34 นาที / วันที่ออก</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">ชั่วโมงนอนเฉลี่ย</div>
+            <div class="kpi-value text-sleep">6.6 <span style="font-size: 1rem;">ชม./คืน</span></div>
+            <div class="kpi-subtext text-warning">⚠ ต่ำกว่าเกณฑ์ (7-9 ชม.)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">ปริมาณน้ำเฉลี่ย</div>
+            <div class="kpi-value text-water">1.54 <span style="font-size: 1rem;">ลิตร/วัน</span></div>
+            <div class="kpi-subtext text-danger">⚠ ต่ำกว่าเกณฑ์ (2.5-3.0 ลิตร)</div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-layout">
+        <!-- Chart Section -->
+        <div class="card-box">
+            <h2>แนวโน้มการนอนหลับและการดื่มน้ำ (7 วัน)</h2>
+            <canvas id="healthChart" height="230"></canvas>
+        </div>
+
+        <!-- Activity Table Section -->
+        <div class="card-box">
+            <h2>รายการกิจกรรมประจำวัน</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>วัน / วันที่</th>
+                            <th>กิจกรรม</th>
+                            <th>นอน (ชม.)</th>
+                            <th>น้ำ (ลิตร)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>7 ก.ย. (จ)</strong></td>
+                            <td><span class="badge badge-workout">วิ่ง 30 นาที</span></td>
+                            <td>7.2</td>
+                            <td>1.8</td>
+                        </tr>
+                        <tr>
+                            <td><strong>8 ก.ย. (อ)</strong></td>
+                            <td><span class="badge badge-workout">ปั่นจักรยาน 45 นาที</span></td>
+                            <td>6.5</td>
+                            <td>1.5</td>
+                        </tr>
+                        <tr>
+                            <td><strong>9 ก.ย. (พ)</strong></td>
+                            <td><span class="badge badge-rest">พักผ่อน</span></td>
+                            <td>6.5</td>
+                            <td>1.5</td>
+                        </tr>
+                        <tr>
+                            <td><strong>10 ก.ย. (พฤ)</strong></td>
+                            <td><span class="badge badge-workout">ยกน้ำหนัก 30 นาที</span></td>
+                            <td>5.0</td>
+                            <td>1.5</td>
+                        </tr>
+                        <tr>
+                            <td><strong>11 ก.ย. (ศ)</strong></td>
+                            <td><span class="badge badge-workout">วิ่ง 1 ชม.</span></td>
+                            <td>6.0</td>
+                            <td>1.5</td>
+                        </tr>
+                        <tr>
+                            <td><strong>12 ก.ย. (ส)</strong></td>
+                            <td><span class="badge badge-workout">ปั่นจักรยาน 40 นาที</span></td>
+                            <td>7.0</td>
+                            <td>1.5</td>
+                        </tr>
+                        <tr>
+                            <td><strong>13 ก.ย. (อา)</strong></td>
+                            <td><span class="badge badge-rest">พักผ่อน</span></td>
+                            <td>8.0</td>
+                            <td>1.5</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Assessment Summary -->
+    <div class="assessment-box">
+        <strong>💡 สรุปการประเมินและข้อแนะนำรายสัปดาห์:</strong>
+        <ul>
+            <li><strong>การออกกำลังกาย (ยอดเยี่ยม):</strong> ทำได้ตามเป้าหมายครบ 5 วัน/สัปดาห์ และมีการกระจายประเภทกิจกรรม (คาร์ดิโอ + เวทเทรนนิ่ง) ได้เป็นอย่างดี</li>
+            <li><strong>การนอนหลับ (ควรปรับปรุง):</strong> เฉลี่ย 6.6 ชม. โดยเฉพาะวันพฤหัสบดีที่นอนเพียง 5 ชม. ควรปรับเวลาเข้านอนให้คงที่เพื่อแตะระดับ 7-8 ชม.</li>
+            <li><strong>การดื่มน้ำ (ต้องปรับปรุงด่วน):</strong> เฉลี่ย 1.54 ลิตร/วัน สำหรับผู้ที่มีน้ำหนักตัว 85 กก. ควรดื่มน้ำเพิ่มเป็นอย่างน้อย <strong>2.5 – 3.0 ลิตร/วัน</strong> เพื่อการฟื้นฟูกล้ามเนื้อและระบบเผาผลาญที่สมบูรณ์</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('healthChart').getContext('2d');
+    
+    const labels = ['7 ก.ย.', '8 ก.ย.', '9 ก.ย.', '10 ก.ย.', '11 ก.ย.', '12 ก.ย.', '13 ก.ย.'];
+    const sleepData = [7.2, 6.5, 6.5, 5.0, 6.0, 7.0, 8.0];
+    const waterData = [1.8, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5];
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'ชั่วโมงนอน (ชม.)',
+                    data: sleepData,
+                    backgroundColor: 'rgba(124, 58, 237, 0.75)',
+                    borderColor: '#7c3aed',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    yAxisID: 'ySleep'
+                },
+                {
+                    label: 'ปริมาณน้ำ (ลิตร)',
+                    data: waterData,
+                    type: 'line',
+                    borderColor: '#0284c7',
+                    backgroundColor: '#0284c7',
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#0284c7',
+                    tension: 0.2,
+                    yAxisID: 'yWater'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { family: 'Prompt', size: 12 }
+                    }
+                },
+                tooltip: {
+                    bodyFont: { family: 'Prompt' },
+                    titleFont: { family: 'Prompt' }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { font: { family: 'Prompt' } },
+                    grid: { display: false }
+                },
+                ySleep: {
+                    type: 'linear',
+                    position: 'left',
+                    title: { display: true, text: 'ชั่วโมงนอน (ชม.)', font: { family: 'Prompt' } },
+                    min: 0,
+                    max: 10,
+                    ticks: { font: { family: 'Prompt' } }
+                },
+                yWater: {
+                    type: 'linear',
+                    position: 'right',
+                    title: { display: true, text: 'ปริมาณน้ำ (ลิตร)', font: { family: 'Prompt' } },
+                    min: 0,
+                    max: 3.5,
+                    grid: { drawOnChartArea: false },
+                    ticks: { font: { family: 'Prompt' } }
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
